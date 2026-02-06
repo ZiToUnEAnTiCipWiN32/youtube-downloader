@@ -1,8 +1,9 @@
 """
 Point d'entrée unique : tout se fait depuis ici (pas de script .bat).
-- Si le venv n'existe pas ou qu'on n'est pas dedans : création du venv, installation
-  des dépendances (avec une fenêtre "Installation..." en Tkinter), puis relance dans le venv.
-- Sinon : lancement de l'application PySide6.
+- Exécutable PyInstaller : lancement direct de l'app (pas de venv).
+- Sinon (python start.py) : si le venv n'existe pas ou qu'on n'est pas dedans,
+  création du venv (gui_app/venv/), installation des dépendances (fenêtre Tkinter),
+  puis relance dans le venv ; sinon lancement de l'application PySide6.
 Windows uniquement.
 """
 from __future__ import annotations
@@ -13,6 +14,7 @@ import subprocess
 import sys
 
 SCRIPT_DIR = pathlib.Path(__file__).resolve().parent
+# Venv créé ici (à côté de start.py) : gui_app/venv/
 VENV_DIR = SCRIPT_DIR / "venv"
 VENV_PYTHON = VENV_DIR / "Scripts" / "python.exe"
 REQUIREMENTS = SCRIPT_DIR / "requirements.txt"
@@ -73,6 +75,12 @@ def main() -> None:
     if sys.platform != "win32":
         print("Cette application est prévue pour Windows uniquement.")
         sys.exit(1)
+
+    # Exécutable PyInstaller : pas de venv, tout est déjà dans l'exe → lancer l'app directement
+    if getattr(sys, "frozen", False):
+        from src.main import run_app
+        run_app()
+        return
 
     # On est dans le venv si sys.executable == VENV_PYTHON (ou équivalent)
     in_venv = (

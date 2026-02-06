@@ -1,0 +1,32 @@
+# Environnement virtuel
+venv/
+.venv/
+
+# Cookies (ne jamais commiter)
+cookies.txt
+cookies.enc
+
+# Données générées
+archive.txt
+downloads/
+logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# PyInstaller
+*.spec
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db

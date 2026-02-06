@@ -1,0 +1,8 @@
+# Dépendances du projet YouTube Downloader (telechargement.py)
+# Le script les installe automatiquement dans yt_env/ au premier lancement.
+# Utile pour : pip install -r requirements.txt (venv activé) ou référence.
+
+yt-dlp[default]
+ffmpeg-python
+colorama
+cryptography

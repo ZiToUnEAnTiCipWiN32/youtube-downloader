@@ -1,0 +1,29 @@
+# Environnement virtuel
+yt_env/
+venv/
+
+# Cookies (ne jamais commiter)
+cookies.txt
+cookies.enc
+
+# Données générées
+archive.txt
+downloads/
+logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db

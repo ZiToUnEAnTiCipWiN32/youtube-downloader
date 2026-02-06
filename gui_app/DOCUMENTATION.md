@@ -93,7 +93,7 @@ Accessible depuis **Aide → À propos** (menu en haut) ou **Maintenance → À 
 |--------|-------------|
 | **Thème d’affichage** | Liste déroulante : **Système** (suit le thème Windows), **Clair**, **Sombre**. La préférence est enregistrée et appliquée immédiatement. |
 | **yt-dlp** | Version actuelle (lue depuis le module) et version disponible (PyPI) ; bouton « Vérifier les mises à jour ». |
-| **Application** | Version actuelle et version disponible (GitHub si `GITHUB_REPO` est configuré) ; bouton « Vérifier les mises à jour ». |
+| **Application** | Version actuelle et version disponible (GitHub si `GITHUB_REPO` est configuré et qu’au moins une **Release** existe) ; bouton « Vérifier les mises à jour ». |
 | **Dossiers** | Lien vers le dossier des logs ; bouton « Ouvrir le dossier des logs » pour ouvrir `gui_app/logs/` dans l’explorateur. |
 
 ---
@@ -219,7 +219,23 @@ L’icône de la **fenêtre** (barre de titre) peut être définie dans le code 
 
 ---
 
-## 10. Dépannage et conseils
+## 10. Vérification des mises à jour (app)
+
+Pour que le bouton **« Vérifier les mises à jour »** affiche une version disponible pour l’application, le dépôt GitHub doit avoir **au moins une Release** avec un tag (ex. `v1.0.0`). L’app interroge l’API GitHub `releases/latest` et utilise le `tag_name` (sans le préfixe `v`).
+
+**Créer une Release sur GitHub :**
+
+1. Sur la page du dépôt : **Releases** → **Create a new release**.
+2. **Choose a tag** : créer un tag, ex. `v1.0.0` (cohérent avec `gui_app/src/__init__.py` → `__version__ = "1.0.0"`).
+3. **Release title** : ex. « v1.0.0 » ou « Version 1.0.0 ».
+4. **Description** (optionnel) : résumé des changements.
+5. **Publish release**.
+
+Après publication, « Vérifier les mises à jour » dans l’onglet Maintenance affichera cette version (ex. 1.0.0) comme « Version disponible » pour l’application.
+
+---
+
+## 11. Dépannage et conseils
 
 - **« Non configuré » alors que cookies.enc existe** : utiliser « Définir le mot de passe pour cookies.enc » (onglet Prérequis) pour définir le mot de passe pour la session.
 - **Erreur type bot / cookies expirés** : mettre à jour les cookies (ré-exporter depuis le navigateur, ré-importer ou re-chiffrer).
@@ -228,6 +244,6 @@ L’icône de la **fenêtre** (barre de titre) peut être définie dans le code 
 
 ---
 
-## 11. Licence
+## 12. Licence
 
 À titre éducatif. L’utilisateur est responsable du respect des conditions d’utilisation de YouTube et du droit applicable.

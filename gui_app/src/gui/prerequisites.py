@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import sys
 import webbrowser
 
 from PySide6.QtWidgets import (
@@ -213,6 +214,9 @@ class PrerequisitesWidget(QWidget):
         row_btns.addWidget(btn_import_browser)
         row_btns.addWidget(btn_encrypt)
         row_btns.addWidget(self._btn_set_password_enc)
+        btn_open_cookies_dir = QPushButton("Ouvrir l'emplacement pour cookies.txt")
+        btn_open_cookies_dir.clicked.connect(self._open_cookies_folder)
+        row_btns.addWidget(btn_open_cookies_dir)
         ly_cookies.addLayout(row_btns)
         row_btns_del = QHBoxLayout()
         btn_del_txt = QPushButton("Supprimer cookies.txt")
@@ -367,6 +371,25 @@ class PrerequisitesWidget(QWidget):
             QMessageBox.information(self, "Cookies", "cookies.enc a été supprimé.")
         except Exception as e:
             QMessageBox.warning(self, "Cookies", f"Impossible de supprimer le fichier : {e}")
+
+    def _open_cookies_folder(self) -> None:
+        """Ouvre dans l'explorateur le dossier où placer cookies.txt (même dossier que l'exe en PyInstaller)."""
+        path_str = str(SCRIPT_DIR)
+        try:
+            if not SCRIPT_DIR.exists():
+                SCRIPT_DIR.mkdir(parents=True, exist_ok=True)
+            if sys.platform == "win32":
+                os.startfile(path_str)
+            elif sys.platform == "darwin":
+                subprocess.run(["open", path_str], check=False)
+            else:
+                subprocess.run(["xdg-open", path_str], check=False)
+        except Exception as e:
+            QMessageBox.warning(
+                self,
+                "Cookies",
+                f"Impossible d'ouvrir le dossier : {e}",
+            )
 
     def _set_password_cookies_enc(self) -> None:
         """Demande le mot de passe et définit YT_COOKIES_PASSWORD pour la session (cookies.enc déjà présent)."""

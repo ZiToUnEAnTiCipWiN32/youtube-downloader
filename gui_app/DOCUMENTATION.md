@@ -204,6 +204,15 @@ Pour produire un `.exe` Windows (optionnel) :
 
 2. **Lancer PyInstaller** depuis `gui_app` :
 
+**Option A — Script PowerShell (recommandé)** : crée le venv, installe les dépendances et PyInstaller, puis construit l’exe.
+
+```powershell
+cd gui_app
+.\build_exe.ps1
+```
+
+**Option B — Commandes manuelles** :
+
 ```powershell
 cd gui_app
 .\venv\Scripts\activate

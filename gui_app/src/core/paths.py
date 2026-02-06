@@ -1,10 +1,14 @@
-"""Chemins et répertoires de l'application (relatifs au dossier gui_app)."""
+"""Chemins et répertoires de l'application (relatifs au dossier gui_app ou à l'exe)."""
 from __future__ import annotations
 
 import pathlib
+import sys
 
-# Dossier contenant start.py (gui_app)
-SCRIPT_DIR = pathlib.Path(__file__).resolve().parent.parent.parent
+# Dossier où placer cookies.txt, etc. : en exe PyInstaller = dossier de l'exe, sinon = gui_app
+if getattr(sys, "frozen", False):
+    SCRIPT_DIR = pathlib.Path(sys.executable).resolve().parent
+else:
+    SCRIPT_DIR = pathlib.Path(__file__).resolve().parent.parent.parent
 LOG_DIR = SCRIPT_DIR / "logs"
 OUTPUT_DIR = SCRIPT_DIR / "downloads"
 ARCHIVE_FILE = SCRIPT_DIR / "archive.txt"

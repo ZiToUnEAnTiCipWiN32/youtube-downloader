@@ -200,24 +200,21 @@ gui_app/
 
 Pour produire un `.exe` Windows (optionnel) :
 
+1. **Copier l’icône** dans le dossier `gui_app` sous le nom `icon.ico` (ex. copier `unnamed.ico` → `gui_app/icon.ico`). Elle sert à l’icône du .exe, de la fenêtre (barre de titre) et de la barre des tâches.
+
+2. **Lancer PyInstaller** depuis `gui_app` :
+
 ```powershell
 cd gui_app
 .\venv\Scripts\activate
 pip install pyinstaller
-pyinstaller --onefile --windowed --icon="C:\chemin\vers\icone.ico" --name "YouTube-Downloader" start.py
+pyinstaller --onefile --windowed --icon="icon.ico" --add-data "icon.ico;." --name "YouTube-Downloader" start.py
 ```
 
-Remplacez `C:\chemin\vers\icone.ico` par le chemin de votre fichier `.ico` (ex. `C:\Users\olivi\Downloads\img_gta\unnamed.ico`).
+- `--icon="icon.ico"` : icône du fichier .exe (si `icon.ico` est dans `gui_app`).
+- `--add-data "icon.ico;."` : inclut l’icône dans l’exe pour qu’elle s’affiche en barre de titre et barre des tâches au lancement.
 
 Le binaire se trouve dans `dist/`. Deno et ffmpeg restent recommandés ; l’utilisateur peut les installer via winget depuis l’onglet Prérequis (si winget est disponible) ou manuellement.
-
-**Icône de l’exécutable** : pour une icône personnalisée sur le `.exe`, fournir un fichier `.ico` et utiliser l’option PyInstaller :
-
-```powershell
-pyinstaller --onefile --windowed --icon="C:\chemin\vers\icone.ico" --name "YouTube-Downloader" start.py
-```
-
-L’icône de la **fenêtre** (barre de titre) peut être définie dans le code avec `QMainWindow.setWindowIcon(QIcon("chemin/vers/icone.ico"))` au démarrage (fichier `.ico` à placer dans le dossier de l’app ou en ressource).
 
 ---
 

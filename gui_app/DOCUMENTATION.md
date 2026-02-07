@@ -73,6 +73,10 @@ Permet de vérifier et configurer les outils recommandés avant de télécharger
 
 Après une installation via winget (Deno ou ffmpeg), un message indique de redémarrer l’application puis de cliquer sur « Tout vérifier ».
 
+**Désinstallation (winget)** — Pour retirer Deno ou ffmpeg installés via winget (PowerShell ou CMD) :
+- **Deno** : `winget uninstall DenoLand.Deno`
+- **ffmpeg** : `winget uninstall Gyan.FFmpeg.Essentials`
+
 ### 4.3 Onglet « Télécharger »
 
 - **Mode Chaîne** : saisir l’URL ou le @handle de la chaîne → « Analyser la chaîne » → liste des sections (onglets / playlists) avec cases à cocher → « Télécharger la sélection ».

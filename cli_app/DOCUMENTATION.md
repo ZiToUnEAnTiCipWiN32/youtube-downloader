@@ -53,7 +53,8 @@ Script Python pour télécharger des vidéos YouTube **par chaîne** (onglets / 
     3. Le dossier contenant `ffmpeg.exe` et `ffprobe.exe` est en général `ffmpeg-8.0.1-essentials_build\bin` (ou similaire).  
     4. Ajouter ce dossier au PATH : **Paramètres** → **Système** → **À propos** → **Paramètres système avancés** → **Variables d’environnement** → dans **Variables utilisateur**, éditer **Path** → **Nouveau** → coller le chemin complet du dossier `bin` (ex. `C:\ffmpeg\ffmpeg-8.0.1-essentials_build\bin`) → **OK**.  
     5. Fermer et rouvrir le terminal (PowerShell ou CMD), puis vérifier : `ffmpeg -version`.  
-    *Alternative* : installer via un gestionnaire de paquets (ffmpeg est alors ajouté au PATH automatiquement) : `winget install "FFmpeg (Essentials Build)"` ou `choco install ffmpeg`.
+    *Alternative* : installer via un gestionnaire de paquets (ffmpeg est alors ajouté au PATH automatiquement) : `winget install Gyan.FFmpeg.Essentials --source winget` ou `choco install ffmpeg`.  
+    **Désinstaller (winget)** : `winget uninstall Gyan.FFmpeg.Essentials`
 
   - **Linux**  
     1. Installer ffmpeg : `sudo apt install ffmpeg` (Debian/Ubuntu), `sudo dnf install ffmpeg` (Fedora), ou selon ta distribution.  
@@ -66,7 +67,7 @@ Script Python pour télécharger des vidéos YouTube **par chaîne** (onglets / 
     3. Si tu as installé ffmpeg manuellement dans un dossier (ex. `/usr/local/bin`), ce dossier doit être dans ton PATH ; sinon ajouter dans `~/.zshrc` ou `~/.bash_profile` : `export PATH="/chemin/vers/bin:$PATH"`, puis rouvrir le terminal.
 
 - **Deno** (runtime JavaScript requis par YouTube / yt-dlp pour les challenges) :
-  - **Windows (PowerShell)** : `irm https://deno.land/install.ps1 | iex`
+  - **Windows (PowerShell)** : `irm https://deno.land/install.ps1 | iex` — ou via winget : `winget install DenoLand.Deno --source winget`. **Désinstaller (winget)** : `winget uninstall DenoLand.Deno`
   - **Linux / macOS** : `curl -fsSL https://deno.land/install.sh | sh`  
   Puis fermer et rouvrir le terminal, et vérifier : `deno --version`.
 

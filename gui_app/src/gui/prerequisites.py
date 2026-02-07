@@ -53,8 +53,8 @@ def check_winget() -> bool:
     return shutil.which("winget") is not None
 
 
-DENO_WINGET = 'winget install DenoLand.Deno --accept-source-agreements --accept-package-agreements'
-FFMPEG_WINGET = 'winget install "FFmpeg (Essentials Build)" --accept-source-agreements --accept-package-agreements'
+DENO_WINGET = 'winget install DenoLand.Deno --source winget --accept-source-agreements --accept-package-agreements'
+FFMPEG_WINGET = 'winget install Gyan.FFmpeg.Essentials --source winget --accept-source-agreements --accept-package-agreements'
 
 # Aide cookies : extensions par navigateur (format Netscape)
 COOKIES_HELP_FIREFOX = "https://addons.mozilla.org/fr/firefox/addon/cookies-txt/"

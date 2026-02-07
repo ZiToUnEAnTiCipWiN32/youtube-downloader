@@ -95,10 +95,10 @@ class DownloadResult:
 
 
 def _video_base_key(fn: str | None) -> str | None:
-    """Clé unique par vidéo (évite double comptage merge)."""
+    """Clé unique par vidéo (évite double comptage merge : fragment .m4a et .mp4 final = même clé)."""
     if not fn:
         return None
-    key = re.sub(r"\.(f\d+\.)?(webm|mp4|mkv)$", "", fn, flags=re.IGNORECASE)
+    key = re.sub(r"\.(f\d+\.)?(webm|mp4|mkv|m4a)$", "", fn, flags=re.IGNORECASE)
     return key or fn
 
 
@@ -107,6 +107,20 @@ def _is_fragment_path(fn: str | None) -> bool:
     if not fn:
         return False
     return bool(re.search(r"\.f\d+\.(webm|mp4|mkv|m4a)$", fn, re.IGNORECASE))
+
+
+def _is_video_output_path(fn: str | None) -> bool:
+    """True si le chemin correspond à une sortie vidéo/audio (fragment ou fichier final), pas aux métadonnées (.info.json, etc.)."""
+    if not fn:
+        return False
+    fn_lower = fn.lower()
+    if fn_lower.endswith(".info.json") or ".info.json" in fn_lower:
+        return False
+    if re.search(r"\.f\d+\.(webm|mp4|mkv|m4a)$", fn, re.IGNORECASE):
+        return True
+    if any(fn_lower.endswith(ext) for ext in (".mp4", ".webm", ".mkv", ".m4a")):
+        return True
+    return False
 
 
 def _extract_already_downloaded_path(msg: str) -> str | None:
@@ -263,6 +277,8 @@ def run_download(
         elif status == "finished":
             if key is None or key in finished_keys:
                 return
+            if not _is_video_output_path(fn):
+                return
             if _is_fragment_path(fn):
                 if pending_finished_key == key:
                     finished_keys.add(key)
@@ -277,17 +293,22 @@ def run_download(
                 else:
                     pending_finished_key = key
             else:
+                # Fichier final (.mp4 etc.) : si pending a la même clé, c'est le fragment de cette vidéo → ne compter qu'une fois
                 if pending_finished_key is not None:
-                    if pending_finished_key not in finished_keys:
-                        finished_keys.add(pending_finished_key)
-                        counters["ok"] += 1
-                        if progress_callback:
-                            progress_callback(
-                                "✔ Vidéo terminée : " + _short_display_name(pending_finished_key),
-                                100.0,
-                                "video_done",
-                            )
-                    pending_finished_key = None
+                    if pending_finished_key == key:
+                        # Même vidéo (fragment audio/vidéo + merge) : ne pas compter le pending, seulement le fichier final
+                        pending_finished_key = None
+                    else:
+                        if pending_finished_key not in finished_keys:
+                            finished_keys.add(pending_finished_key)
+                            counters["ok"] += 1
+                            if progress_callback:
+                                progress_callback(
+                                    "✔ Vidéo terminée : " + _short_display_name(pending_finished_key),
+                                    100.0,
+                                    "video_done",
+                                )
+                        pending_finished_key = None
                 finished_keys.add(key)
                 counters["ok"] += 1
                 if progress_callback:

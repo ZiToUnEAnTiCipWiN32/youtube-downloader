@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFormLayout,
+    QMenu,
 )
 from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtGui import QFont
@@ -205,27 +206,28 @@ class PrerequisitesWidget(QWidget):
         btn_cookies_help.clicked.connect(self._show_cookies_help)
         btn_import_browser = QPushButton("Importer depuis le navigateur (beta)")
         btn_import_browser.clicked.connect(self._import_cookies_from_browser)
-        btn_encrypt = QPushButton("Chiffrer cookies.txt en cookies.enc")
-        btn_encrypt.clicked.connect(self._encrypt_cookies)
-        self._btn_set_password_enc = QPushButton("Définir le mot de passe pour cookies.enc")
-        self._btn_set_password_enc.clicked.connect(self._set_password_cookies_enc)
+        # Menu « Gérer les cookies » pour alléger l’interface
+        self._btn_manage_cookies = QPushButton("Gérer les cookies")
+        self._btn_manage_cookies.setToolTip("Ouvrir l’emplacement, chiffrer, mot de passe, supprimer…")
+        self._menu_cookies = QMenu(self)
+        self._menu_cookies.addAction("Ouvrir l'emplacement pour cookies.txt", self._open_cookies_folder)
+        self._menu_cookies.addAction("Chiffrer cookies.txt en cookies.enc", self._encrypt_cookies)
+        self._act_password_enc = self._menu_cookies.addAction(
+            "Définir le mot de passe pour cookies.enc", self._set_password_cookies_enc
+        )
+        self._menu_cookies.addSeparator()
+        self._menu_cookies.addAction("Supprimer cookies.txt", self._on_delete_cookies_txt)
+        self._menu_cookies.addAction("Supprimer cookies.enc", self._on_delete_cookies_enc)
+
+        def _show_cookies_menu():
+            self._menu_cookies.exec(self._btn_manage_cookies.mapToGlobal(self._btn_manage_cookies.rect().bottomLeft()))
+
+        self._btn_manage_cookies.clicked.connect(_show_cookies_menu)
         row_btns.addWidget(btn_cookies)
         row_btns.addWidget(btn_cookies_help)
         row_btns.addWidget(btn_import_browser)
-        row_btns.addWidget(btn_encrypt)
-        row_btns.addWidget(self._btn_set_password_enc)
-        btn_open_cookies_dir = QPushButton("Ouvrir l'emplacement pour cookies.txt")
-        btn_open_cookies_dir.clicked.connect(self._open_cookies_folder)
-        row_btns.addWidget(btn_open_cookies_dir)
+        row_btns.addWidget(self._btn_manage_cookies)
         ly_cookies.addLayout(row_btns)
-        row_btns_del = QHBoxLayout()
-        btn_del_txt = QPushButton("Supprimer cookies.txt")
-        btn_del_txt.clicked.connect(self._on_delete_cookies_txt)
-        btn_del_enc = QPushButton("Supprimer cookies.enc")
-        btn_del_enc.clicked.connect(self._on_delete_cookies_enc)
-        row_btns_del.addWidget(btn_del_txt)
-        row_btns_del.addWidget(btn_del_enc)
-        ly_cookies.addLayout(row_btns_del)
         layout.addWidget(gb_cookies)
 
         # Archive (éviter les doublons)
@@ -326,7 +328,7 @@ class PrerequisitesWidget(QWidget):
         self._lbl_cookies_status.setStyleSheet(
             f"font-weight: 600; min-width: 80px; color: {color};"
         )
-        self._btn_set_password_enc.setVisible(enc_only)
+        self._act_password_enc.setVisible(enc_only)
 
     def _on_delete_cookies_txt(self) -> None:
         """Demande confirmation puis supprime cookies.txt."""
@@ -443,13 +445,17 @@ class PrerequisitesWidget(QWidget):
     def _refresh_archive(self) -> None:
         """Met à jour l'affichage du nombre d'entrées dans l'archive."""
         if not ARCHIVE_FILE.exists():
-            self._lbl_archive_count.setText("Aucune entrée (fichier absent).")
+            self._lbl_archive_count.setText("Aucune entrée pour l'instant.")
+            self._lbl_archive_count.setToolTip("Le fichier archive.txt est créé au premier téléchargement.")
             return
+        self._lbl_archive_count.setToolTip("")
         try:
             text = ARCHIVE_FILE.read_text(encoding="utf-8")
             count = sum(1 for line in text.splitlines() if line.strip())
+            self._lbl_archive_count.setToolTip("")
             self._lbl_archive_count.setText(f"{count} vidéo(s) en archive.")
         except Exception:
+            self._lbl_archive_count.setToolTip("")
             self._lbl_archive_count.setText("Impossible de lire l'archive.")
 
     def _on_delete_archive(self) -> None:

@@ -546,12 +546,27 @@ PROGRESS_PERCENT_STEP = 5
 _finished_video_keys: set[str] = set()
 
 def _video_base_key(fn: str | None) -> str | None:
-    """Clé unique par vidéo : chemin sans suffixe .fXXX.ext ou .mp4 (évite double comptage merge)."""
+    """Clé unique par vidéo : chemin sans suffixe .fXXX.ext ou .mp4/.m4a (évite double comptage merge)."""
     if not fn:
         return None
-    # Enlève .mp4, .webm, .mkv ou .f247.webm etc.
-    key = re.sub(r"\.(f\d+\.)?(webm|mp4|mkv)$", "", fn, flags=re.IGNORECASE)
+    # Enlève .mp4, .webm, .mkv, .m4a ou .f247.webm / .f140.m4a etc.
+    key = re.sub(r"\.(f\d+\.)?(webm|mp4|mkv|m4a)$", "", fn, flags=re.IGNORECASE)
     return key or fn
+
+
+def _is_video_output_path(fn: str | None) -> bool:
+    """True si le chemin est une sortie vidéo/audio (fragment ou final), pas métadonnées (.info.json)."""
+    if not fn:
+        return False
+    fn_lower = fn.lower()
+    if fn_lower.endswith(".info.json") or ".info.json" in fn_lower:
+        return False
+    if re.search(r"\.f\d+\.(webm|mp4|mkv|m4a)$", fn, re.IGNORECASE):
+        return True
+    if any(fn_lower.endswith(ext) for ext in (".mp4", ".webm", ".mkv", ".m4a")):
+        return True
+    return False
+
 
 def _is_fragment_path(fn: str | None) -> bool:
     """True si le chemin est un fragment yt-dlp (ex. .f398.mp4, .f251.webm) avant merge."""
@@ -625,6 +640,8 @@ def progress_hook(d: dict[str, Any]) -> None:
     elif status == "finished":
         if key is None or key in _finished_video_keys:
             return
+        if not _is_video_output_path(fn):
+            return
         if _is_fragment_path(fn):
             # Fragment (vidéo ou audio) : afficher "Vidéo terminée" seulement après le dernier fragment
             if _pending_finished_key == key:
@@ -636,10 +653,13 @@ def progress_hook(d: dict[str, Any]) -> None:
                 print()
                 _pending_finished_key = key
         else:
-            # Fichier final (pas de merge, un seul flux)
+            # Fichier final (.mp4 etc.) : si pending a la même clé, c'est le fragment de cette vidéo → ne compter qu'une fois
             if _pending_finished_key is not None:
-                _emit_video_finished(_pending_finished_key)
-                _pending_finished_key = None
+                if _pending_finished_key == key:
+                    _pending_finished_key = None
+                else:
+                    _emit_video_finished(_pending_finished_key)
+                    _pending_finished_key = None
             _emit_video_finished(key)
 
     elif status == "error":

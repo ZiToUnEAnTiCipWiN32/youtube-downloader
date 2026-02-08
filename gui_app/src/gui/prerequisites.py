@@ -276,7 +276,7 @@ class PrerequisitesWidget(QWidget):
         btn_cookies_help = QPushButton("Comment obtenir cookies.txt")
         btn_cookies_help.setProperty("class", "primary")
         btn_cookies_help.clicked.connect(self._show_cookies_help)
-        btn_import_browser = QPushButton("Importer depuis le navigateur")
+        btn_import_browser = QPushButton("Importer depuis Firefox")
         btn_import_browser.clicked.connect(self._import_cookies_from_browser)
         # Menu « Gérer les cookies » pour alléger l’interface
         self._btn_manage_cookies = QPushButton("Gérer les cookies")
@@ -699,7 +699,7 @@ class PrerequisitesWidget(QWidget):
         layout.setSpacing(12)
         intro = QLabel(
             "Connectez-vous à YouTube dans votre navigateur, puis exportez les cookies au format Netscape. "
-            "Selon votre navigateur, utilisez une des extensions ci-dessous (ou « Importer depuis le navigateur») :"
+            "Selon votre navigateur, utilisez une des extensions ci-dessous (ou « Importer depuis Firefox » si vous utilisez Firefox) :"
         )
         intro.setWordWrap(True)
         intro.setProperty("class", "secondary")
@@ -799,7 +799,7 @@ class PrerequisitesWidget(QWidget):
             QMessageBox.warning(self, "Cookies", f"Échec du chiffrement : {err}")
 
     def _import_cookies_from_browser(self) -> None:
-        """Tente d'extraire les cookies YouTube du navigateur (Chrome, Firefox, Edge) et enregistre cookies.txt.
+        """Tente d'extraire les cookies YouTube du navigateur (Firefox recommandé ; Chrome/Edge chiffrés sous Windows).
         Fusionne .youtube.com et .google.com pour avoir le même jeu de cookies que l'extension (auth Google)."""
         try:
             import browser_cookie3
@@ -807,7 +807,7 @@ class PrerequisitesWidget(QWidget):
             QMessageBox.information(
                 self,
                 "Import cookies",
-                "Pour activer l'import depuis le navigateur, installez la dépendance recommandé :\n\n"
+                "Pour activer l'import depuis Firefox, installez la dépendance recommandée :\n\n"
                 "pip install browser-cookie3\n\n"
                 "Puis redémarrez l'application. Sinon, utilisez une extension (voir « Comment obtenir cookies.txt »).",
             )
@@ -876,9 +876,9 @@ class PrerequisitesWidget(QWidget):
             QMessageBox.warning(
                 self,
                 "Import cookies",
-                "Impossible d'extraire les cookies (Chrome, Firefox, Edge).\n\n"
-                "Vérifiez que vous êtes connecté à YouTube dans au moins un navigateur, "
-                "que le navigateur n'est pas en cours d'utilisation exclusive, et réessayez. "
+                "Impossible d'extraire les cookies.\n\n"
+                "Sous Windows, seul Firefox est pris en charge (Chrome et Edge chiffrent leurs données). "
+                "Vérifiez que vous êtes connecté à YouTube dans Firefox, que Firefox n'est pas en cours d'utilisation exclusive, et réessayez. "
                 "Sinon, utilisez une extension (voir « Comment obtenir cookies.txt »).",
             )
             return

@@ -42,7 +42,7 @@ Au premier run, le venv est créé et les dépendances sont installées ; l’ap
 - **PySide6** ≥ 6.6 (interface Qt ; thème système à partir de Qt 6.5).
 - **yt-dlp** (téléchargements YouTube).
 - **cryptography** (chiffrement des cookies en cookies.enc).
-- **browser-cookie3** (optionnel ; pour « Importer depuis le navigateur »).
+- **browser-cookie3** (optionnel ; pour « Importer depuis Firefox »).
 
 Elles sont listées dans `requirements.txt` et installées dans le venv au premier lancement.
 
@@ -67,7 +67,7 @@ Permet de vérifier et configurer les outils recommandés avant de télécharger
 | **Deno** | Vérification dans le PATH (sur Windows : PATH du registre si besoin) ; « Installer via winget » si Deno absent ; « Supprimer » (désinstaller via winget) si Deno installé et winget disponible. |
 | **ffmpeg** | Vérification dans le PATH (sur Windows : PATH du registre si besoin) ; « Installer via winget » si ffmpeg absent ; « Supprimer » (désinstaller via winget) si ffmpeg installé et winget disponible. |
 | **Cookies** | Statut : **Configuré** (cookies.txt ou cookies.enc + mot de passe), **Mot de passe requis** (cookies.enc présent sans variable d’environnement), ou **Non configuré**. Voir section 6. |
-| **Boutons cookies** | « Vérifier », « Comment obtenir cookies.txt », « Importer depuis le navigateur », « Chiffrer cookies.txt en cookies.enc », « Définir le mot de passe pour cookies.enc » (visible uniquement quand cookies.enc existe sans mot de passe défini), « Supprimer cookies.txt », « Supprimer cookies.enc ». |
+| **Boutons cookies** | « Vérifier », « Comment obtenir cookies.txt », « Importer depuis Firefox », « Chiffrer cookies.txt en cookies.enc », « Définir le mot de passe pour cookies.enc » (visible uniquement quand cookies.enc existe sans mot de passe défini), « Supprimer cookies.txt », « Supprimer cookies.enc ». |
 | **Archive** | Chemin de `archive.txt` et nombre d’entrées ; bouton « Supprimer archive.txt » pour réinitialiser les doublons. |
 | **Tout vérifier** | Rafraîchit tous les indicateurs (Deno, ffmpeg, cookies, archive). |
 
@@ -124,12 +124,12 @@ Les cookies YouTube (format Netscape) permettent d’éviter les blocages type b
 ### 6.2 Obtenir des cookies
 
 - **Extensions navigateur** : « Comment obtenir cookies.txt » ouvre une aide avec des liens (Firefox, Chrome, Edge) pour exporter les cookies au format Netscape.
-- **Importer depuis le navigateur** : tente d’extraire les cookies YouTube/Google depuis Chrome, Firefox ou Edge (nécessite `browser-cookie3`). Enregistre `cookies.txt` dans le dossier de l’app.
+- **Importer depuis Firefox** : tente d’extraire les cookies YouTube/Google depuis le navigateur (nécessite `browser-cookie3`). **Sous Windows, seul Firefox est pris en charge** : Chrome et Edge chiffrent leurs données (DPAPI), l'import ne fonctionne donc pas avec eux. Enregistre `cookies.txt` dans le dossier de l’app.
 
   - **Format généré** : le fichier est post-traité pour être compatible Netscape/yt-dlp : retrait du préfixe `#HttpOnly_` dans la colonne domaine (sinon les lignes seraient interprétées comme commentaires), et dates d'expiration en secondes (format attendu). Seuls les domaines se terminant par `youtube.com` ou `google.com` sont conservés.
   - **Fusion** : si un `cookies.txt` existe déjà, il est chargé puis complété par les cookies du navigateur (pas d'écrasement).
   - **Vérification** : l'app vérifie la présence de cookies d'authentification (SID, HSID, SAPISID, __Secure-3PSID) et avertit si aucun n'est détecté (vidéos restreintes susceptibles d'échouer).
-  - **Limites** : `browser-cookie3` peut échouer si le navigateur est ouvert, le profil chiffré, ou sous Firefox Snap/Flatpak. Dans ce cas, utiliser une extension (voir « Comment obtenir cookies.txt »).
+  - **Limites** : sous Windows, utiliser **Firefox** pour l'import ; Chrome/Edge ne sont pas supportés (chiffrement). `browser-cookie3` peut aussi échouer si Firefox est ouvert, le profil chiffré, ou sous Firefox Snap/Flatpak. Dans ce cas, utiliser une extension (voir « Comment obtenir cookies.txt »).
 
 ### 6.3 Chiffrer cookies.txt en cookies.enc
 
@@ -256,7 +256,7 @@ Après publication, « Vérifier les mises à jour » dans l’onglet Maintenanc
 ## 11. Dépannage et conseils
 
 - **« Non configuré » alors que cookies.enc existe** : utiliser « Définir le mot de passe pour cookies.enc » (onglet Prérequis) pour définir le mot de passe pour la session.
-- **Erreur type bot / cookies expirés** : mettre à jour les cookies (ré-exporter depuis le navigateur, ré-importer ou re-chiffrer).
+- **Erreur type bot / cookies expirés** : mettre à jour les cookies (ré-exporter depuis le navigateur ou ré-importer depuis Firefox, puis re-chiffrer si besoin).
 - **Deno / ffmpeg non trouvés après installation** : sur Windows, l’app lit le PATH du registre et le fusionne au téléchargement ; en général, cliquer sur « Tout vérifier » suffit. Si le statut reste « Non trouvé », redémarrer l’application puis « Tout vérifier », ou vérifier que l’outil est bien dans le PATH système (Paramètres > Système > À propos > Paramètres système avancés > Variables d’environnement).
 - **Thème** : si la détection système ne fonctionne pas, vérifier PySide6 ≥ 6.6 (Qt 6.5+). Sinon, choisir « Clair » ou « Sombre » dans Maintenance.
 

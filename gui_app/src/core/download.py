@@ -21,8 +21,8 @@ from .paths import (
 from .cookies import get_cookiefile_path
 
 # Messages utilisateur pour les erreurs gérées (comme dans cli_app)
-BOT_COOKIE_MSG = "Bot/cookies : mettez à jour cookies.txt (ou « Importer depuis le navigateur » dans Prérequis)."
-COOKIES_INVALID_MSG = "Cookies expirés/invalides : mettez à jour cookies.txt (export depuis le navigateur)."
+BOT_COOKIE_MSG = "Bot/cookies : mettez à jour cookies.txt (ou « Importer depuis Firefox » dans Prérequis)."
+COOKIES_INVALID_MSG = "Cookies expirés/invalides : mettez à jour cookies.txt (export depuis le navigateur ou import depuis Firefox)."
 NO_TITLE_MSG = "Métadonnées incomplètes (fallback titre)."
 SIG_EJS_RUNTIME_MSG = "Problème technique yt-dlp (signature/EJS/runtime). Vérifiez Deno et mettez à jour yt-dlp."
 
@@ -76,11 +76,11 @@ def get_error_advice(error_msg: str) -> str:
     if not error_msg:
         return ""
     if _is_bot_cookie_error(error_msg) or error_msg.strip() == BOT_COOKIE_MSG:
-        return "Conseil : ajoutez ou mettez à jour les cookies (onglet Prérequis → « Importer depuis le navigateur » ou « Comment obtenir cookies.txt »)."
+        return "Conseil : ajoutez ou mettez à jour les cookies (onglet Prérequis → « Importer depuis Firefox » ou « Comment obtenir cookies.txt »)."
     if _is_cookies_invalid_error(error_msg) or error_msg.strip() == COOKIES_INVALID_MSG:
         return "Conseil : ré-exportez cookies.txt depuis le navigateur (connecté à YouTube), puis remplacez le fichier dans le dossier de l'app."
     if _is_no_title_warning(error_msg) or error_msg.strip() == NO_TITLE_MSG:
-        return "Conseil : souvent lié aux cookies. Mettez à jour cookies.txt ou utilisez « Importer depuis le navigateur » (onglet Prérequis)."
+        return "Conseil : souvent lié aux cookies. Mettez à jour cookies.txt ou utilisez « Importer depuis Firefox » (onglet Prérequis)."
     if _is_sig_ejs_runtime(error_msg) or error_msg.strip() == SIG_EJS_RUNTIME_MSG:
         return "Conseil : installez Deno (voir onglet Prérequis) et mettez à jour yt-dlp (pip install -U yt-dlp)."
     return ""

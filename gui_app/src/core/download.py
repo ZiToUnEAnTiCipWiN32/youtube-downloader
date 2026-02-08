@@ -16,6 +16,7 @@ from .paths import (
     OUTPUT_TEMPLATE,
     REMOTE_COMPONENTS,
     ensure_dirs,
+    ensure_windows_path_in_env,
 )
 from .cookies import get_cookiefile_path
 
@@ -180,6 +181,7 @@ def run_download(
     progress_callback(msg, percent, status) est appelé pour la progression (status = "downloading" | "finished" | "error").
     Retourne DownloadResult(ok, skipped, error, last_error).
     """
+    ensure_windows_path_in_env()
     ensure_dirs()
     counters: dict[str, Any] = {"ok": 0, "skipped": 0, "error": 0}
     last_error: list[str] = []

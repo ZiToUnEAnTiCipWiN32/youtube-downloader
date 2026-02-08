@@ -19,14 +19,14 @@ Aucun script `.bat` ou `.ps1` n’est nécessaire : tout est géré par `start.p
 ## Prérequis (vérifiables depuis l’onglet « Prérequis »)
 
 - **Python 3.10+** (installé sur la machine).
-- **Deno** (recommandé pour YouTube) : l’onglet « Prérequis » permet de vérifier et d’installer via **winget** (Windows).
-- **ffmpeg** (recommandé pour fusion audio/vidéo) : l’onglet « Prérequis » permet de vérifier et d’installer via **winget** (Windows).
-- **winget** doit être disponible (Windows 10/11 avec App Installer) pour que les boutons « Installer via winget » de Deno et ffmpeg soient actifs.
+- **Deno** (recommandé pour YouTube) : l’onglet « Prérequis » permet de vérifier, d’installer et de désinstaller via **winget** (Windows).
+- **ffmpeg** (recommandé pour fusion audio/vidéo) : l’onglet « Prérequis » permet de vérifier, d’installer et de désinstaller via **winget** (Windows).
+- **winget** doit être disponible (Windows 10/11 avec App Installer) pour que les boutons « Installer via winget » et « Supprimer » de Deno et ffmpeg soient actifs. Sur Windows, après une installation via winget, pas besoin de redémarrer l’app : la détection et les téléchargements utilisent le PATH du registre.
 - **Cookies** (recommandé) : placer `cookies.txt` (format Netscape) dans le dossier `gui_app`, ou `cookies.enc` avec `YT_COOKIES_PASSWORD` / `YT_COOKIES_KEY`. Depuis l’onglet Prérequis : **« Importer depuis le navigateur »** (Chrome/Firefox/Edge), **« Chiffrer cookies.txt en cookies.enc »** (création de cookies.enc ; le mot de passe est pris en compte pour la session en cours), **« Supprimer cookies.txt »** / **« Supprimer cookies.enc »**, **« Comment obtenir cookies.txt »** (liens vers les extensions). L’état est affiché dans « Prérequis ».
 
 ## Utilisation
 
-1. **Onglet « Prérequis »** : indicateur **winget** (Disponible / Non disponible) ; vérifier Deno, ffmpeg, cookies ; installer **Deno** ou **ffmpeg** via winget si besoin (boutons désactivés si winget est absent) ; « Importer depuis le navigateur », « Chiffrer cookies.txt en cookies.enc », « Supprimer cookies.txt » / « Supprimer cookies.enc », « Comment obtenir cookies.txt » ; « Tout vérifier » pour rafraîchir.
+1. **Onglet « Prérequis »** : indicateur **winget** (Disponible / Non disponible) ; vérifier Deno, ffmpeg, cookies ; installer ou **supprimer** **Deno** / **ffmpeg** via winget (boutons désactivés si winget absent ou outil non installé) ; « Importer depuis le navigateur », « Chiffrer cookies.txt en cookies.enc », « Supprimer cookies.txt » / « Supprimer cookies.enc », « Comment obtenir cookies.txt » ; « Tout vérifier » pour rafraîchir.
 2. **Onglet « Télécharger »** :
    - **Mode Chaîne** : saisir l’URL ou le @handle de la chaîne → « Analyser la chaîne » → cocher les sections à télécharger → « Télécharger la sélection ».
    - **Mode Vidéo** : saisir l’URL de la vidéo → « Télécharger la sélection ».
@@ -40,8 +40,8 @@ Les vidéos sont enregistrées dans `gui_app/downloads/`. L’archive (éviter l
 
 - `start.py` : point d’entrée unique ; crée le venv et installe les deps au premier run, puis lance l’app PySide6.
 - `src/main.py` : lancement de l’application Qt.
-- `src/core/` : logique métier (chemins, URLs, cookies, analyse de chaîne, téléchargement yt-dlp).
-- `src/gui/` : fenêtre principale, styles (thème clair/sombre selon le système), onglet Prérequis (winget, Deno, ffmpeg, cookies — import, chiffrement, suppression), onglet Téléchargement (mode, analyse, liste, progression, ouvrir dossier téléchargements), onglet Maintenance (versions, mises à jour, ouvrir dossier logs).
+- `src/core/` : logique métier (chemins, URLs, cookies, analyse de chaîne, téléchargement yt-dlp ; sur Windows, PATH du registre pour Deno/ffmpeg).
+- `src/gui/` : fenêtre principale, styles (thème clair/sombre selon le système), onglet Prérequis (winget, Deno, ffmpeg — vérifier, installer, supprimer — cookies, archive), onglet Téléchargement (mode, analyse, liste, progression, ouvrir dossier téléchargements), onglet Maintenance (versions, mises à jour, ouvrir dossier logs).
 
 ## Exécutable (PyInstaller)
 

@@ -63,19 +63,20 @@ Permet de vérifier et configurer les outils recommandés avant de télécharger
 
 | Élément | Description |
 |--------|-------------|
-| **winget** | Indicateur « Disponible » / « Non disponible ». Si winget est absent, les boutons « Installer via winget » (Deno, ffmpeg) sont désactivés. |
-| **Deno** | Vérification dans le PATH ; bouton « Installer via winget » si Deno absent et winget disponible. |
-| **ffmpeg** | Vérification dans le PATH ; bouton « Installer via winget » si ffmpeg absent et winget disponible. |
+| **winget** | Indicateur « Disponible » / « Non disponible ». Si winget est absent, les boutons « Installer via winget » et « Supprimer » (Deno, ffmpeg) sont désactivés. |
+| **Deno** | Vérification dans le PATH (sur Windows : PATH du registre si besoin) ; « Installer via winget » si Deno absent ; « Supprimer » (désinstaller via winget) si Deno installé et winget disponible. |
+| **ffmpeg** | Vérification dans le PATH (sur Windows : PATH du registre si besoin) ; « Installer via winget » si ffmpeg absent ; « Supprimer » (désinstaller via winget) si ffmpeg installé et winget disponible. |
 | **Cookies** | Statut : **Configuré** (cookies.txt ou cookies.enc + mot de passe), **Mot de passe requis** (cookies.enc présent sans variable d’environnement), ou **Non configuré**. Voir section 6. |
 | **Boutons cookies** | « Vérifier », « Comment obtenir cookies.txt », « Importer depuis le navigateur (beta) », « Chiffrer cookies.txt en cookies.enc », « Définir le mot de passe pour cookies.enc » (visible uniquement quand cookies.enc existe sans mot de passe défini), « Supprimer cookies.txt », « Supprimer cookies.enc ». |
 | **Archive** | Chemin de `archive.txt` et nombre d’entrées ; bouton « Supprimer archive.txt » pour réinitialiser les doublons. |
 | **Tout vérifier** | Rafraîchit tous les indicateurs (Deno, ffmpeg, cookies, archive). |
 
-Après une installation via winget (Deno ou ffmpeg), un message indique de redémarrer l’application puis de cliquer sur « Tout vérifier ».
+Après une installation via winget (Deno ou ffmpeg), un message suggère de cliquer sur « Tout vérifier ». Sur **Windows**, il n’est en général **pas nécessaire de redémarrer** : la détection lit le PATH depuis le registre, et au moment du téléchargement l’application fusionne ce PATH dans l’environnement pour que yt-dlp trouve Deno et ffmpeg.
 
-**Désinstallation (winget)** — Pour retirer Deno ou ffmpeg installés via winget (PowerShell ou CMD) :
-- **Deno** : `winget uninstall DenoLand.Deno`
-- **ffmpeg** : `winget uninstall Gyan.FFmpeg.Essentials`
+**Désinstallation** — Depuis la GUI : bouton **« Supprimer »** pour Deno ou ffmpeg (si l’outil est installé et winget disponible). En ligne de commande (PowerShell ou CMD) :
+- **Deno** : `winget uninstall --id DenoLand.Deno`
+- **ffmpeg** : `winget uninstall --id Gyan.FFmpeg.Essentials`
+Si winget ne trouve pas le paquet (installation manuelle), un message indique de désinstaller depuis **Paramètres > Applications > Applications et fonctionnalités**.
 
 ### 4.3 Onglet « Télécharger »
 
@@ -184,11 +185,11 @@ gui_app/
 └── src/
     ├── main.py           # Lancement QApplication, thème, fenêtre
     ├── core/             # Logique métier
-    │   ├── paths.py       # Chemins (SCRIPT_DIR, LOG_DIR, OUTPUT_DIR, ARCHIVE_FILE, cookies)
+    │   ├── paths.py       # Chemins ; sur Windows : get_windows_system_path, ensure_windows_path_in_env (PATH registre pour Deno/ffmpeg)
     │   ├── urls.py        # Normalisation URLs chaîne / vidéo
     │   ├── channel.py     # Analyse de chaîne (sections, playlists)
     │   ├── cookies.py     # cookies.txt / cookies.enc, chiffrement, get_cookiefile_path
-    │   └── download.py    # run_download (yt-dlp), messages d'erreur utilisateur
+    │   └── download.py    # run_download (yt-dlp) ; sur Windows, fusion du PATH registre avant téléchargement pour que yt-dlp trouve Deno/ffmpeg ; messages d'erreur utilisateur
     └── gui/
         ├── main_window.py      # Fenêtre principale, onglets, barre de statut
         ├── styles.py           # Thèmes clair/sombre, palette, apply_button_palette
@@ -251,7 +252,7 @@ Après publication, « Vérifier les mises à jour » dans l’onglet Maintenanc
 
 - **« Non configuré » alors que cookies.enc existe** : utiliser « Définir le mot de passe pour cookies.enc » (onglet Prérequis) pour définir le mot de passe pour la session.
 - **Erreur type bot / cookies expirés** : mettre à jour les cookies (ré-exporter depuis le navigateur, ré-importer ou re-chiffrer).
-- **Deno / ffmpeg non trouvés après installation** : redémarrer l’application (le PATH est lu au démarrage), puis cliquer sur « Tout vérifier ».
+- **Deno / ffmpeg non trouvés après installation** : sur Windows, l’app lit le PATH du registre et le fusionne au téléchargement ; en général, cliquer sur « Tout vérifier » suffit. Si le statut reste « Non trouvé », redémarrer l’application puis « Tout vérifier », ou vérifier que l’outil est bien dans le PATH système (Paramètres > Système > À propos > Paramètres système avancés > Variables d’environnement).
 - **Thème** : si la détection système ne fonctionne pas, vérifier PySide6 ≥ 6.6 (Qt 6.5+). Sinon, choisir « Clair » ou « Sombre » dans Maintenance.
 
 ---

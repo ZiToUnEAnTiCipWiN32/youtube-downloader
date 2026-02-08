@@ -27,7 +27,13 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtGui import QFont
 
-from src.core.paths import SCRIPT_DIR, ARCHIVE_FILE, COOKIE_FILE, COOKIE_FILE_ENCRYPTED
+from src.core.paths import (
+    SCRIPT_DIR,
+    ARCHIVE_FILE,
+    COOKIE_FILE,
+    COOKIE_FILE_ENCRYPTED,
+    get_windows_system_path,
+)
 from src.core.cookies import (
     has_cookies_source,
     has_cookies_enc_only,
@@ -36,12 +42,39 @@ from src.core.cookies import (
 )
 
 
+def _which_in_path(program: str, path_str: str) -> str | None:
+    """Cherche l'exécutable dans la chaîne PATH donnée. Retourne le chemin complet ou None."""
+    if not path_str:
+        return None
+    name = program + (".exe" if sys.platform == "win32" else "")
+    for part in path_str.split(os.pathsep):
+        part = part.strip()
+        if not part:
+            continue
+        full = os.path.join(part, name)
+        if os.path.isfile(full):
+            return full
+    return None
+
+
 def check_deno() -> bool:
-    return shutil.which("deno") is not None
+    if shutil.which("deno") is not None:
+        return True
+    if sys.platform == "win32":
+        path_str = get_windows_system_path()
+        if path_str and _which_in_path("deno", path_str):
+            return True
+    return False
 
 
 def check_ffmpeg() -> bool:
-    return shutil.which("ffmpeg") is not None
+    if shutil.which("ffmpeg") is not None:
+        return True
+    if sys.platform == "win32":
+        path_str = get_windows_system_path()
+        if path_str and _which_in_path("ffmpeg", path_str):
+            return True
+    return False
 
 
 def check_cookies() -> bool:
@@ -55,6 +88,8 @@ def check_winget() -> bool:
 
 DENO_WINGET = 'winget install DenoLand.Deno --source winget --accept-source-agreements --accept-package-agreements'
 FFMPEG_WINGET = 'winget install "FFmpeg (Essentials Build)" --source winget --accept-source-agreements --accept-package-agreements'
+DENO_WINGET_UNINSTALL = 'winget uninstall --id DenoLand.Deno --silent'
+FFMPEG_WINGET_UNINSTALL = 'winget uninstall --id Gyan.FFmpeg.Essentials --silent'
 
 # Aide cookies : extensions par navigateur (format Netscape)
 COOKIES_HELP_FIREFOX = "https://addons.mozilla.org/fr/firefox/addon/cookies-txt/"
@@ -153,8 +188,12 @@ class PrerequisitesWidget(QWidget):
         self._btn_deno_install.setProperty("class", "primary")
         self._btn_deno_install.clicked.connect(self._install_deno)
         self._btn_deno_install.setToolTip("Désactivé si winget n'est pas disponible.")
+        self._btn_deno_uninstall = QPushButton("Supprimer")
+        self._btn_deno_uninstall.clicked.connect(self._uninstall_deno)
+        self._btn_deno_uninstall.setToolTip("Désinstaller Deno via winget. Désactivé si Deno absent ou winget indisponible.")
         h_deno.addWidget(btn_deno_check)
         h_deno.addWidget(self._btn_deno_install)
+        h_deno.addWidget(self._btn_deno_uninstall)
         ly_deno.addLayout(h_deno)
         layout.addWidget(gb_deno)
 
@@ -179,8 +218,12 @@ class PrerequisitesWidget(QWidget):
         self._btn_ffmpeg_install.setProperty("class", "primary")
         self._btn_ffmpeg_install.clicked.connect(self._install_ffmpeg)
         self._btn_ffmpeg_install.setToolTip("Désactivé si winget n'est pas disponible.")
+        self._btn_ffmpeg_uninstall = QPushButton("Supprimer")
+        self._btn_ffmpeg_uninstall.clicked.connect(self._uninstall_ffmpeg)
+        self._btn_ffmpeg_uninstall.setToolTip("Désinstaller ffmpeg via winget. Désactivé si ffmpeg absent ou winget indisponible.")
         h_ffmpeg.addWidget(btn_ffmpeg_check)
         h_ffmpeg.addWidget(self._btn_ffmpeg_install)
+        h_ffmpeg.addWidget(self._btn_ffmpeg_uninstall)
         ly_ffmpeg.addLayout(h_ffmpeg)
         layout.addWidget(gb_ffmpeg)
 
@@ -282,6 +325,7 @@ class PrerequisitesWidget(QWidget):
         )
         winget_ok = check_winget()
         self._btn_deno_install.setEnabled(not ok and winget_ok)
+        self._btn_deno_uninstall.setEnabled(ok and winget_ok)
         if ok:
             self._lbl_deno.setText("Deno est disponible dans le PATH.")
         else:
@@ -297,6 +341,7 @@ class PrerequisitesWidget(QWidget):
         )
         winget_ok = check_winget()
         self._btn_ffmpeg_install.setEnabled(not ok and winget_ok)
+        self._btn_ffmpeg_uninstall.setEnabled(ok and winget_ok)
         if ok:
             self._lbl_ffmpeg.setText("ffmpeg est disponible dans le PATH.")
         else:
@@ -506,6 +551,7 @@ class PrerequisitesWidget(QWidget):
         if self._worker and self._worker.isRunning():
             return
         self._install_tool = "deno"
+        self._is_uninstall = False
         self._progress = QProgressDialog("Installation de Deno via winget…", None, 0, 0, self)
         self._progress.setWindowTitle("Installation")
         self._progress.setMinimumDuration(0)
@@ -518,6 +564,7 @@ class PrerequisitesWidget(QWidget):
         if self._worker and self._worker.isRunning():
             return
         self._install_tool = "ffmpeg"
+        self._is_uninstall = False
         self._progress = QProgressDialog("Installation de ffmpeg via winget…", None, 0, 0, self)
         self._progress.setWindowTitle("Installation")
         self._progress.setMinimumDuration(0)
@@ -526,23 +573,89 @@ class PrerequisitesWidget(QWidget):
         self._worker.finished_signal.connect(self._on_install_finished)
         self._worker.start()
 
+    def _uninstall_deno(self) -> None:
+        if self._worker and self._worker.isRunning():
+            return
+        reply = QMessageBox.question(
+            self,
+            "Supprimer Deno",
+            "Désinstaller Deno via winget ?\n\nRedémarrez l'application après la désinstallation pour que le statut soit à jour.",
+            QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Yes,
+            QMessageBox.StandardButton.Cancel,
+        )
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+        self._install_tool = "deno"
+        self._is_uninstall = True
+        self._progress = QProgressDialog("Désinstallation de Deno via winget…", None, 0, 0, self)
+        self._progress.setWindowTitle("Désinstallation")
+        self._progress.setMinimumDuration(0)
+        self._progress.show()
+        self._worker = InstallWorker(DENO_WINGET_UNINSTALL, self)
+        self._worker.finished_signal.connect(self._on_install_finished)
+        self._worker.start()
+
+    def _uninstall_ffmpeg(self) -> None:
+        if self._worker and self._worker.isRunning():
+            return
+        reply = QMessageBox.question(
+            self,
+            "Supprimer ffmpeg",
+            "Désinstaller ffmpeg via winget ?\n\nRedémarrez l'application après la désinstallation pour que le statut soit à jour.",
+            QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Yes,
+            QMessageBox.StandardButton.Cancel,
+        )
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+        self._install_tool = "ffmpeg"
+        self._is_uninstall = True
+        self._progress = QProgressDialog("Désinstallation de ffmpeg via winget…", None, 0, 0, self)
+        self._progress.setWindowTitle("Désinstallation")
+        self._progress.setMinimumDuration(0)
+        self._progress.show()
+        self._worker = InstallWorker(FFMPEG_WINGET_UNINSTALL, self)
+        self._worker.finished_signal.connect(self._on_install_finished)
+        self._worker.start()
+
     def _on_install_finished(self, success: bool, message: str) -> None:
         if self._progress:
             self._progress.close()
             self._progress = None
         tool = getattr(self, "_install_tool", "ffmpeg")
+        is_uninstall = getattr(self, "_is_uninstall", False)
         if success:
-            QMessageBox.information(
-                self,
-                "Installation",
-                f"{'Deno' if tool == 'deno' else 'ffmpeg'} a été installé (ou était déjà présent). Redémarrez l'application puis cliquez sur « Tout vérifier ».",
-            )
+            if is_uninstall:
+                QMessageBox.information(
+                    self,
+                    "Désinstallation",
+                    f"{'Deno' if tool == 'deno' else 'ffmpeg'} a été désinstallé. Redémarrez l'application puis cliquez sur « Tout vérifier ».",
+                )
+            else:
+                QMessageBox.information(
+                    self,
+                    "Installation",
+                    f"{'Deno' if tool == 'deno' else 'ffmpeg'} a été installé (ou était déjà présent). Redémarrez l'application puis cliquez sur « Tout vérifier ».",
+                )
         else:
-            QMessageBox.warning(
-                self,
-                "Installation",
-                f"L'installation a échoué ou a été annulée.\n\n{message}",
-            )
+            title = "Désinstallation" if is_uninstall else "Installation"
+            # Message plus clair si winget ne trouve pas le paquet (installé manuellement, autre source)
+            if is_uninstall and (
+                "Aucun package installé" in message
+                or "critères saisis" in message
+                or "No installed package" in message.lower()
+            ):
+                tool_name = "Deno" if tool == "deno" else "ffmpeg"
+                msg = (
+                    f"winget ne trouve pas {tool_name} parmi les paquets qu'il a installés.\n\n"
+                    "Si vous l'avez installé manuellement (site officiel, Chocolatey, Scoop, etc.), "
+                    "désinstallez-le depuis :\n"
+                    "Paramètres > Applications > Applications et fonctionnalités\n\n"
+                    "Détail winget : " + message.strip()
+                )
+            else:
+                action = "La désinstallation" if is_uninstall else "L'installation"
+                msg = f"{action} a échoué ou a été annulée.\n\n{message}"
+            QMessageBox.warning(self, title, msg)
         if tool == "deno":
             self._refresh_deno()
         else:

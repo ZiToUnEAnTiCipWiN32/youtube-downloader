@@ -204,6 +204,30 @@ def _build_stylesheet(c: dict[str, str]) -> str:
         background: #166534;
         color: white;
     }}
+    QPushButton[class="warning"] {{
+        background: {c["warning"]};
+        color: white;
+    }}
+    QPushButton[class="warning"]:hover {{
+        background: #a16207;
+        color: white;
+    }}
+    QPushButton[class="warning"]:pressed {{
+        background: #854d0e;
+        color: white;
+    }}
+    QPushButton[class="error"] {{
+        background: {c["error"]};
+        color: white;
+    }}
+    QPushButton[class="error"]:hover {{
+        background: #b91c1c;
+        color: white;
+    }}
+    QPushButton[class="error"]:pressed {{
+        background: #991b1b;
+        color: white;
+    }}
 
     /* Champs de saisie */
     QLineEdit {{
@@ -444,6 +468,16 @@ def apply_button_palette(root: Any, theme: str) -> None:
             elif cls == "success":
                 p = btn.palette()
                 p.setColor(QPalette.ColorRole.Button, QColor(c["success"]))
+                p.setColor(QPalette.ColorRole.ButtonText, white)
+                btn.setPalette(p)
+            elif cls == "warning":
+                p = btn.palette()
+                p.setColor(QPalette.ColorRole.Button, QColor(c["warning"]))
+                p.setColor(QPalette.ColorRole.ButtonText, white)
+                btn.setPalette(p)
+            elif cls == "error":
+                p = btn.palette()
+                p.setColor(QPalette.ColorRole.Button, QColor(c["error"]))
                 p.setColor(QPalette.ColorRole.ButtonText, white)
                 btn.setPalette(p)
     except Exception:

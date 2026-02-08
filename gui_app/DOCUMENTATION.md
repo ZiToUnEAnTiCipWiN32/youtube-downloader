@@ -239,17 +239,17 @@ Le binaire se trouve dans `dist/`. Deno et ffmpeg restent recommandés ; l’uti
 
 ## 10. Vérification des mises à jour (app)
 
-Pour que le bouton **« Vérifier les mises à jour »** affiche une version disponible pour l’application, le dépôt GitHub doit avoir **au moins une Release** avec un tag (ex. `v1.0.0`). L’app interroge l’API GitHub `releases/latest` et utilise le `tag_name` (sans le préfixe `v`).
+Pour que le bouton **« Vérifier les mises à jour »** affiche une version disponible pour l’application, le dépôt GitHub doit avoir **au moins une Release** avec un tag (ex. `v2.0.0`). L’app interroge l’API GitHub `releases/latest` et utilise le `tag_name` (sans le préfixe `v`).
 
 **Créer une Release sur GitHub :**
 
 1. Sur la page du dépôt : **Releases** → **Create a new release**.
-2. **Choose a tag** : créer un tag, ex. `v1.0.0` (cohérent avec `gui_app/src/__init__.py` → `__version__ = "1.0.0"`).
-3. **Release title** : ex. « v1.0.0 » ou « Version 1.0.0 ».
+2. **Choose a tag** : créer un tag, ex. `v2.0.0` (cohérent avec `gui_app/src/__init__.py` → `__version__ = "2.0.0"`).
+3. **Release title** : ex. « v2.0.0 » ou « Version 2.0.0 ».
 4. **Description** (optionnel) : résumé des changements.
 5. **Publish release**.
 
-Après publication, « Vérifier les mises à jour » dans l’onglet Maintenance affichera cette version (ex. 1.0.0) comme « Version disponible » pour l’application.
+Après publication, « Vérifier les mises à jour » dans l’onglet Maintenance affichera cette version (ex. 2.0.0) comme « Version disponible » pour l’application.
 
 ---
 

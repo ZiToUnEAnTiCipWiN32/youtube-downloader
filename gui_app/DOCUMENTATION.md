@@ -124,7 +124,12 @@ Les cookies YouTube (format Netscape) permettent d’éviter les blocages type b
 ### 6.2 Obtenir des cookies
 
 - **Extensions navigateur** : « Comment obtenir cookies.txt » ouvre une aide avec des liens (Firefox, Chrome, Edge) pour exporter les cookies au format Netscape.
-- **Importer depuis le navigateur (beta)** : tente d’extraire les cookies YouTube depuis Chrome, Firefox ou Edge (nécessite `browser-cookie3`). Enregistre `cookies.txt` dans le dossier de l’app.
+- **Importer depuis le navigateur (beta)** : tente d’extraire les cookies YouTube/Google depuis Chrome, Firefox ou Edge (nécessite `browser-cookie3`). Enregistre `cookies.txt` dans le dossier de l’app.
+
+  - **Format généré** : le fichier est post-traité pour être compatible Netscape/yt-dlp : retrait du préfixe `#HttpOnly_` dans la colonne domaine (sinon les lignes seraient interprétées comme commentaires), et dates d'expiration en secondes (format attendu). Seuls les domaines se terminant par `youtube.com` ou `google.com` sont conservés.
+  - **Fusion** : si un `cookies.txt` existe déjà, il est chargé puis complété par les cookies du navigateur (pas d'écrasement).
+  - **Vérification** : l'app vérifie la présence de cookies d'authentification (SID, HSID, SAPISID, __Secure-3PSID) et avertit si aucun n'est détecté (vidéos restreintes susceptibles d'échouer).
+  - **Limites** : `browser-cookie3` peut échouer si le navigateur est ouvert, le profil chiffré, ou sous Firefox Snap/Flatpak. Dans ce cas, utiliser une extension (voir « Comment obtenir cookies.txt »).
 
 ### 6.3 Chiffrer cookies.txt en cookies.enc
 

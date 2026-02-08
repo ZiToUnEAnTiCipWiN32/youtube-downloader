@@ -1,7 +1,9 @@
 """Onglet Prérequis : vérification Deno, ffmpeg, cookies ; installation depuis la GUI."""
 from __future__ import annotations
 
+import logging
 import os
+import pathlib
 import shutil
 import subprocess
 import sys
@@ -40,6 +42,33 @@ from src.core.cookies import (
     cookies_file_valid,
     encrypt_cookies_to_file,
 )
+
+logger = logging.getLogger("yt_dlp_gui")
+
+
+def _normalize_netscape_cookies_file(path: pathlib.Path) -> None:
+    """Post-traite cookies.txt pour compatibilité Netscape/yt-dlp : retire #HttpOnly_ du domaine (sinon ligne traitée comme commentaire), convertit expiry ms → secondes."""
+    text = path.read_text(encoding="utf-8", errors="replace")
+    lines = text.splitlines()
+    out = []
+    for line in lines:
+        if "\t" not in line or line.count("\t") < 6:
+            out.append(line)
+            continue
+        parts = line.split("\t", 6)
+        if len(parts) != 7:
+            out.append(line)
+            continue
+        if parts[0].startswith("#HttpOnly_"):
+            parts[0] = parts[0][10:]
+        try:
+            exp = int(parts[4])
+            if exp > 1e12:
+                parts[4] = str(exp // 1000)
+        except (ValueError, IndexError):
+            pass
+        out.append("\t".join(parts))
+    path.write_text("\n".join(out) + ("\n" if text.endswith("\n") else ""), encoding="utf-8")
 
 
 def _which_in_path(program: str, path_str: str) -> str | None:
@@ -778,7 +807,7 @@ class PrerequisitesWidget(QWidget):
             QMessageBox.information(
                 self,
                 "Import cookies",
-                "Pour activer l'import depuis le navigateur, installez la dépendance recommandéle :\n\n"
+                "Pour activer l'import depuis le navigateur, installez la dépendance recommandé :\n\n"
                 "pip install browser-cookie3\n\n"
                 "Puis redémarrez l'application. Sinon, utilisez une extension (voir « Comment obtenir cookies.txt »).",
             )
@@ -786,25 +815,43 @@ class PrerequisitesWidget(QWidget):
         from http.cookiejar import MozillaCookieJar
 
         out_path = SCRIPT_DIR / "cookies.txt"
-        # Domaines utiles pour YouTube (auth Google + YouTube)
-        youtube_domains = (".youtube.com", ".google.com", "youtube.com", "google.com")
-        used = ""
+        # Domaines autorisés : fin stricte (évite notgoogle.com, evil-youtube.com)
+        ALLOWED_DOMAIN_SUFFIXES = ("youtube.com")
+
+        def _domain_ok(dom: str) -> bool:
+            norm = (dom or "").lstrip(".")
+            if not norm:
+                return False
+            return norm == "youtube.com" or norm.endswith(".youtube.com") or norm == "google.com" or norm.endswith(".google.com")
+
+        # Cookies d'auth Google critiques pour les vidéos restreintes
+        AUTH_COOKIE_NAMES = ("SID", "HSID", "SAPISID", "__Secure-3PSID")
+
+        used_browser: str | None = None
+        moz = MozillaCookieJar(out_path)
+        if out_path.exists():
+            try:
+                moz.load(str(out_path), ignore_discard=True, ignore_expires=True)
+                logger.debug("Cookies existants chargés depuis %s pour fusion", out_path)
+            except Exception as e:
+                logger.debug("Impossible de charger cookies.txt existant pour fusion: %s", e)
+
         for name, loader in [
             ("Chrome", browser_cookie3.chrome),
             ("Firefox", browser_cookie3.firefox),
             ("Edge", browser_cookie3.edge),
         ]:
+            logger.debug("Tentative import cookies depuis %s", name)
             try:
-                # Charger sans filtre de domaine pour récupérer tous les cookies du navigateur
                 cj = loader()
                 if cj is None:
+                    logger.debug("Import depuis %s: aucun cookie jar", name)
                     continue
-                # Garder uniquement les cookies YouTube / Google (comme l'extension)
                 seen = set()
-                moz = MozillaCookieJar(out_path)
+                added = 0
                 for cookie in cj:
                     dom = getattr(cookie, "domain", "") or ""
-                    if not any(d in dom for d in youtube_domains):
+                    if not _domain_ok(dom):
                         continue
                     key = (cookie.name, dom, getattr(cookie, "path", "/"))
                     if key in seen:
@@ -812,36 +859,45 @@ class PrerequisitesWidget(QWidget):
                     seen.add(key)
                     try:
                         moz.set_cookie(cookie)
+                        added += 1
                     except Exception:
                         continue
-                if len(seen) == 0:
+                if added == 0:
+                    logger.debug("Import depuis %s: 0 cookie YouTube/Google", name)
                     continue
-                moz.save(ignore_discard=True, ignore_expires=True)
-                used = name
+                logger.info("Import depuis %s: %d cookies YouTube/Google", name, added)
+                used_browser = name
                 break
-            except Exception:
+            except Exception as e:
+                logger.debug("Import depuis %s échoué: %s", name, e)
                 continue
-        else:
-            if used == "":
-                QMessageBox.warning(
-                    self,
-                    "Import cookies",
-                    "Impossible d'extraire les cookies (Chrome, Firefox, Edge).\n\n"
-                    "Vérifiez que vous êtes connecté à YouTube dans au moins un navigateur, "
-                    "que le navigateur n'est pas en cours d'utilisation exclusive, et réessayez. "
-                    "Sinon, utilisez une extension (voir « Comment obtenir cookies.txt »).",
-                )
-                return
+
+        if used_browser is None:
+            QMessageBox.warning(
+                self,
+                "Import cookies",
+                "Impossible d'extraire les cookies (Chrome, Firefox, Edge).\n\n"
+                "Vérifiez que vous êtes connecté à YouTube dans au moins un navigateur, "
+                "que le navigateur n'est pas en cours d'utilisation exclusive, et réessayez. "
+                "Sinon, utilisez une extension (voir « Comment obtenir cookies.txt »).",
+            )
+            return
+
         try:
-            if used:
-                self._refresh_cookies()
-                QMessageBox.information(
-                    self,
-                    "Import cookies",
-                    f"Cookies YouTube/Google extraits depuis {used} et enregistrés dans :\n{out_path}\n\n"
-                    "Cliquez sur « Vérifier » pour confirmer. Si l'analyse de chaîne échoue, privilégiez l'extension.",
-                )
+            moz.save(ignore_discard=True, ignore_expires=True)
+            _normalize_netscape_cookies_file(out_path)
+            cookie_names = {c.name for c in moz}
+            has_auth = any(n in cookie_names for n in AUTH_COOKIE_NAMES)
+            msg = (
+                f"Cookies YouTube/Google extraits depuis {used_browser} et enregistrés dans :\n{out_path}\n\n"
+                "Cliquez sur « Vérifier » pour confirmer. Si l'analyse de chaîne échoue, privilégiez l'extension."
+            )
+            if not has_auth:
+                msg += "\n\nAucun cookie d'authentification Google détecté ; les vidéos restreintes peuvent échouer."
+            self._refresh_cookies()
+            QMessageBox.information(self, "Import cookies", msg)
         except Exception as e:
+            logger.exception("Erreur enregistrement cookies.txt après import")
             QMessageBox.warning(
                 self,
                 "Import cookies",

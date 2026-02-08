@@ -67,7 +67,7 @@ Permet de vérifier et configurer les outils recommandés avant de télécharger
 | **Deno** | Vérification dans le PATH (sur Windows : PATH du registre si besoin) ; « Installer via winget » si Deno absent ; « Supprimer » (désinstaller via winget) si Deno installé et winget disponible. |
 | **ffmpeg** | Vérification dans le PATH (sur Windows : PATH du registre si besoin) ; « Installer via winget » si ffmpeg absent ; « Supprimer » (désinstaller via winget) si ffmpeg installé et winget disponible. |
 | **Cookies** | Statut : **Configuré** (cookies.txt ou cookies.enc + mot de passe), **Mot de passe requis** (cookies.enc présent sans variable d’environnement), ou **Non configuré**. Voir section 6. |
-| **Boutons cookies** | « Vérifier », « Comment obtenir cookies.txt », « Importer depuis le navigateur (beta) », « Chiffrer cookies.txt en cookies.enc », « Définir le mot de passe pour cookies.enc » (visible uniquement quand cookies.enc existe sans mot de passe défini), « Supprimer cookies.txt », « Supprimer cookies.enc ». |
+| **Boutons cookies** | « Vérifier », « Comment obtenir cookies.txt », « Importer depuis le navigateur », « Chiffrer cookies.txt en cookies.enc », « Définir le mot de passe pour cookies.enc » (visible uniquement quand cookies.enc existe sans mot de passe défini), « Supprimer cookies.txt », « Supprimer cookies.enc ». |
 | **Archive** | Chemin de `archive.txt` et nombre d’entrées ; bouton « Supprimer archive.txt » pour réinitialiser les doublons. |
 | **Tout vérifier** | Rafraîchit tous les indicateurs (Deno, ffmpeg, cookies, archive). |
 
@@ -124,7 +124,7 @@ Les cookies YouTube (format Netscape) permettent d’éviter les blocages type b
 ### 6.2 Obtenir des cookies
 
 - **Extensions navigateur** : « Comment obtenir cookies.txt » ouvre une aide avec des liens (Firefox, Chrome, Edge) pour exporter les cookies au format Netscape.
-- **Importer depuis le navigateur (beta)** : tente d’extraire les cookies YouTube/Google depuis Chrome, Firefox ou Edge (nécessite `browser-cookie3`). Enregistre `cookies.txt` dans le dossier de l’app.
+- **Importer depuis le navigateur** : tente d’extraire les cookies YouTube/Google depuis Chrome, Firefox ou Edge (nécessite `browser-cookie3`). Enregistre `cookies.txt` dans le dossier de l’app.
 
   - **Format généré** : le fichier est post-traité pour être compatible Netscape/yt-dlp : retrait du préfixe `#HttpOnly_` dans la colonne domaine (sinon les lignes seraient interprétées comme commentaires), et dates d'expiration en secondes (format attendu). Seuls les domaines se terminant par `youtube.com` ou `google.com` sont conservés.
   - **Fusion** : si un `cookies.txt` existe déjà, il est chargé puis complété par les cookies du navigateur (pas d'écrasement).

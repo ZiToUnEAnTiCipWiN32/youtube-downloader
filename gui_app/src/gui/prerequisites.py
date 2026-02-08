@@ -276,7 +276,7 @@ class PrerequisitesWidget(QWidget):
         btn_cookies_help = QPushButton("Comment obtenir cookies.txt")
         btn_cookies_help.setProperty("class", "primary")
         btn_cookies_help.clicked.connect(self._show_cookies_help)
-        btn_import_browser = QPushButton("Importer depuis le navigateur (beta)")
+        btn_import_browser = QPushButton("Importer depuis le navigateur")
         btn_import_browser.clicked.connect(self._import_cookies_from_browser)
         # Menu « Gérer les cookies » pour alléger l’interface
         self._btn_manage_cookies = QPushButton("Gérer les cookies")
@@ -608,7 +608,7 @@ class PrerequisitesWidget(QWidget):
         reply = QMessageBox.question(
             self,
             "Supprimer Deno",
-            "Désinstaller Deno via winget ?\n\nRedémarrez l'application après la désinstallation pour que le statut soit à jour.",
+            "Désinstaller Deno via winget ?\n\nRedémarrez l'application après la désinstallation.",
             QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Yes,
             QMessageBox.StandardButton.Cancel,
         )
@@ -630,7 +630,7 @@ class PrerequisitesWidget(QWidget):
         reply = QMessageBox.question(
             self,
             "Supprimer ffmpeg",
-            "Désinstaller ffmpeg via winget ?\n\nRedémarrez l'application après la désinstallation pour que le statut soit à jour.",
+            "Désinstaller ffmpeg via winget ?\n\nRedémarrez l'application après la désinstallation.",
             QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Yes,
             QMessageBox.StandardButton.Cancel,
         )
@@ -657,13 +657,13 @@ class PrerequisitesWidget(QWidget):
                 QMessageBox.information(
                     self,
                     "Désinstallation",
-                    f"{'Deno' if tool == 'deno' else 'ffmpeg'} a été désinstallé. Redémarrez l'application puis cliquez sur « Tout vérifier ».",
+                    f"{'Deno' if tool == 'deno' else 'ffmpeg'} a été désinstallé. Redémarrez l'application.",
                 )
             else:
                 QMessageBox.information(
                     self,
                     "Installation",
-                    f"{'Deno' if tool == 'deno' else 'ffmpeg'} a été installé (ou était déjà présent). Redémarrez l'application puis cliquez sur « Tout vérifier ».",
+                    f"{'Deno' if tool == 'deno' else 'ffmpeg'} a été installé (ou était déjà présent). Redémarrez l'application.",
                 )
         else:
             title = "Désinstallation" if is_uninstall else "Installation"
@@ -678,7 +678,7 @@ class PrerequisitesWidget(QWidget):
                     f"winget ne trouve pas {tool_name} parmi les paquets qu'il a installés.\n\n"
                     "Si vous l'avez installé manuellement (site officiel, Chocolatey, Scoop, etc.), "
                     "désinstallez-le depuis :\n"
-                    "Paramètres > Applications > Applications et fonctionnalités\n\n"
+                    "Paramètres > Applications\n\n"
                     "Détail winget : " + message.strip()
                 )
             else:
@@ -699,7 +699,7 @@ class PrerequisitesWidget(QWidget):
         layout.setSpacing(12)
         intro = QLabel(
             "Connectez-vous à YouTube dans votre navigateur, puis exportez les cookies au format Netscape. "
-            "Selon votre navigateur, utilisez une des extensions ci-dessous (ou « Importer depuis le navigateur (beta)») :"
+            "Selon votre navigateur, utilisez une des extensions ci-dessous (ou « Importer depuis le navigateur») :"
         )
         intro.setWordWrap(True)
         intro.setProperty("class", "secondary")
